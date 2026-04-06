@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FisioLife | Agendamento Online</title>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function(){
+            // Substitua pelo seu Public Key do EmailJS para ativar o e-mail
+            emailjs.init("SUA_PUBLIC_KEY_AQUI");
+        })();
+    </script>
+
+    <style>
+        :root {
+            --primary: #27ae60;    /* Verde Saúde */
+            --secondary: #2c3e50;  /* Azul Escuro Profissional */
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #333333;
+        }
+
+        .dark-mode {
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #e0e0e0;
+            --secondary: #000000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        
+        body { background-color: var(--bg); color: var(--text); transition: 0.3s; }
+
+        /* Cabeçalho */
+        header {
+            background: var(--secondary);
+            color: white;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .logo { font-size: 1.4rem; font-weight: bold; letter-spacing: 1px; }
+        .logo span { color: var(--primary); }
+
+        #theme-toggle {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Banner Principal */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            height: 40vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Formulário de Agendamento */
+        .container { max-width: 600px; margin: -50px auto 50px; padding: 0 20px; }
+
+        form {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h2 { margin-bottom: 20px; text-align: center; color: var(--primary); }
+
+        .field-group { margin-bottom: 15px; }
+        
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .row { display: flex; gap: 15px; }
+        .row div { flex: 1; }
+
+        .btn-confirmar {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-confirmar:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        #status-msg {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        footer { text-align: center; padding: 30px; opacity: 0.6; font-size: 0.8rem; }
+
+        @media (max-width: 480px) {
+            .row { flex-direction: column; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">FISIO<span>LIFE</span></div>
+        <button id="theme-toggle">🌙 Modo Escuro</button>
+    </header>
+
+    <section class="hero">
+        <h1>Sua Recuperação em Boas Mãos</h1>
+        <p>Agende sua avaliação fisioterapêutica em segundos.</p>
+    </section>
+
+    <div class="container">
+        <form id="appointment-form">
+            <h2>Agendar Horário</h2>
+            
+            <div class="field-group">
+                <label>Nome Completo</label>
+                <input type="text" name="user_name" id="name" placeholder="Ex: João Silva" required>
+            </div>
+
+            <div class="field-group">
+                <label>Seu Melhor E-mail</label>
+                <input type="email" name="user_email" id="email" placeholder="email@exemplo.com" required>
+            </div>
+
+            <div class="field-group">
+                <label>Especialidade Desejada</label>
+                <select name="service" id="service" required>
+                    <option value="Ortopedia">Fisioterapia Traumato-Ortopédica</option>
+                    <option value="Desportiva">Fisioterapia Desportiva</option>
+                    <option value="RPG">RPG (Reeducação Postural)</option>
+                    <option value="Neuro">Fisioterapia Neurológica</option>
+                </select>
+            </div>
+
+            <div class="row">
+                <div class="field-group">
+                    <label>Data</label>
+                    <input type="date" name="date" id="date" required>
+                </div>
+                <div class="field-group">
+                    <label>Hora</label>
+                    <input type="time" name="time" id="time" required>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label>Breve Resumo do Sintoma</label>
+                <textarea name="message" id="message" rows="3" placeholder="Como podemos te ajudar?"></textarea>
+            </div>
+
+            <button type="submit" class="btn-confirmar">Confirmar Agendamento</button>
+            
+            <div id="status-msg"></div>
+        </form>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 FisioLife Reabilitação | Desenvolvido para Fisioterapeutas</p>
+    </footer>
+
+    <script>
+        // Bloqueia datas passadas no calendário
+        const dateInput = document.getElementById('date');
+        dateInput.min = new Date().toISOString().split("T")[0];
+
+        // Alternar Modo Escuro
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            themeBtn.innerText = document.body.classList.contains('dark-mode') ? "☀️ Modo Claro" : "🌙 Modo Escuro";
+        });
+
+        // ENVIO DO FORMULÁRIO (Email + WhatsApp)
+        document.getElementById('appointment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const status = document.getElementById('status-msg');
+            status.style.display = "block";
+            status.style.backgroundColor = "#e1f5fe";
+            status.innerText = "Processando seu pedido...";
+
+            // --- PARTE A: ENVIO DE NOTIFICAÇÃO POR E-MAIL ---
+            // Substitua os IDs abaixo pelos seus IDs do EmailJS
+            const serviceID = 'SEU_SERVICE_ID';
+            const templateID = 'SEU_TEMPLATE_ID';
+
+            emailjs.sendForm(serviceID, templateID, this)
+                .then(() => {
+                    status.style.backgroundColor = "#d4edda";
+                    status.style.color = "#155724";
+                    status.innerText = "✅ Agendamento enviado! Abrindo WhatsApp...";
+                    
+                    // Chama a função do WhatsApp após o e-mail ser disparado
+                    abrirWhatsapp();
+                }, (err) => {
+                    // Mesmo se o e-mail falhar (por falta de config), tentamos o WhatsApp
+                    console.log("Erro EmailJS:", err);
+                    abrirWhatsapp();
+                });
+        });
+
+        function abrirWhatsapp() {
+            const nome = document.getElementById('name').value;
+            const servico = document.getElementById('service').value;
+            const data = document.getElementById('date').value.split('-').reverse().join('/');
+            const hora = document.getElementById('time').value;
+            
+            // INSIRA SEU NÚMERO AQUI (Apenas números, com 55 e DDD)
+            const meuZap = "5535999321325"; 
+            
+            const mensagemFinal = `*NOVO AGENDAMENTO*%0A%0A` +
+                                  `*Paciente:* ${nome}%0A` +
+                                  `*Serviço:* ${servico}%0A` +
+                                  `*Data:* ${data}%0A` +
+                                  `*Horário:* ${hora}`;
+
+            const url = `https://api.whatsapp.com/send?phone=${meuZap}&text=${mensagemFinal}`;
+            
+            setTimeout(() => {
+                window.open(url, '_blank');
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
